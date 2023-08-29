@@ -98,23 +98,8 @@ def start_train(args):
         json.dump(ood, f)
 
     project_name = "proteomics-project"
-
-    # versions = []
-    # for path in glob.glob(Configuration.CHECKPOINTS_PATH.format(gene=gene) + "/" + project_name + "/*--v_*"):
-    #     name = path.split("/")[-1]
-    #     version = int(name.split("_")[-1])
-    #     versions.append(version)
-    #
-    # if len(versions) == 0:
-    #     version = 0
-    # else:
-    #     version = max(versions) + 1
-    #
-    # run_version = "{gene}--v_{version}".format(gene=gene, version=str(version))
     wandb.init(project=project_name, name="MyFirstAttempt")
-    # wandb_logger = WandbLogger(project=project_name, log_model=True,
-    #                            save_dir=Configuration.CHECKPOINTS_PATH.format(gene=gene),
-    #                            version=run_version)
+
     net1 = create_model()
     net2 = create_model()
     optimizer1 = optim.SGD(net1.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
@@ -122,6 +107,12 @@ def start_train(args):
     criterion = SemiLoss()
     CE = nn.CrossEntropyLoss(reduction='none')
     CEloss = nn.CrossEntropyLoss()
+
+    train_instances, valid_instances = data_splitter.split_train_val(extreme,
+                                                                     seed=Configuration.SEED,
+                                                                     val_proportion=0.2)
+
+    # TODO: Shahar- should split data!!!
 
     all_loss = [[], []]  # save the history of losses from two networks
     warm_up_iterations = 3
@@ -137,7 +128,8 @@ def start_train(args):
             param_group['lr'] = lr
 
         if epoch < warm_up_iterations:
-            tiles_dataset = TilesDataset(tiles_directory_path, ids=extreme, mode="all", noise_ratio=0.2)
+            # Shahar- you use train instances, but what about validation? figure out how the authors used it
+            tiles_dataset = TilesDataset(tiles_directory_path, ids=train_instances, mode="all", noise_ratio=0.2)
             warmup_loader = DataLoader(tiles_dataset, batch_size=Configuration.BATCH_SIZE * 2,
                                        shuffle=True, num_workers=num_workers)
 
