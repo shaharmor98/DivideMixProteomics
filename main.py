@@ -44,7 +44,7 @@ def init_argparse():
     parser.add_argument('--num_epochs', default=300, type=int)
     parser.add_argument('--r', default=0.5, type=float, help='noise ratio')
     parser.add_argument("-device", type=str)
-    parser.add_argument("--gene", type=str)
+    parser.add_argument("--gene", default="MKI67", type=str)
 
     return parser
 
@@ -146,6 +146,7 @@ def start_train(args):
             warmup(args, net2, optimizer2, warmup_loader)
 
     wandb.finish()
+
 
 def main():
     parser = init_argparse()
