@@ -13,7 +13,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from OriginalDivideMix.PreResNet import ResNet18
-from OriginalDivideMix.train_cifar import SemiLoss, NegEntropy, CEloss
 from configuration import Configuration
 from data_parser.data_splitter import DataSplitter
 from data_parser.dia_to_metadata_parser import DiaToMetadata
@@ -50,6 +49,7 @@ def init_argparse():
 
 
 def warmup(args, net, optimizer, dataloader):
+    CEloss = nn.CrossEntropyLoss()
     net.train()
     num_iter = (len(dataloader.dataset) // dataloader.batch_size) + 1
     for batch_idx, (inputs, labels, path) in enumerate(dataloader):
