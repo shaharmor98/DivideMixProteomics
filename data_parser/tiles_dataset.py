@@ -42,27 +42,28 @@ class TilesDataset(Dataset):
             if os.path.exists(os.path.join(Configuration.CHECKPOINTS_PATH, hash)):
                 with open(os.path.join(Configuration.CHECKPOINTS_PATH, hash), "rb") as f:
                     train_data, train_label = pickle.load(f)
-            fail = 0
-            c = 0
-            for path, label in self._files:
-                img_path = os.path.join(self.root_dir, path)
-                img_obj = Image.open(img_path)
-                img = np.array(Image.open(img_path))
-                if img.shape != (512, 512, 3):
-                    fail += 1
-                else:
-                    # reshape to (32, 32, 3)
-                    img = np.asarray(img_obj.resize((32, 32)))
-                    train_data.append(img)
-                    train_label.append(label)
-                c += 1
-                if c % 1000 == 0:
-                    print("loaded {} files, {}".format(c, datetime.now()))
-            print(f"failed {fail}, which is {(fail / len(self._files)) * 100}%")
-            train_data = np.stack(train_data)
-            print("Ended loading at: {}".format(datetime.now()))
-            with open(os.path.join(Configuration.CHECKPOINTS_PATH, hash), "wb") as f:
-                pickle.dump((train_data, train_label), f)
+            else:
+                fail = 0
+                c = 0
+                for path, label in self._files:
+                    img_path = os.path.join(self.root_dir, path)
+                    img_obj = Image.open(img_path)
+                    img = np.array(Image.open(img_path))
+                    if img.shape != (512, 512, 3):
+                        fail += 1
+                    else:
+                        # reshape to (32, 32, 3)
+                        img = np.asarray(img_obj.resize((32, 32)))
+                        train_data.append(img)
+                        train_label.append(label)
+                    c += 1
+                    if c % 1000 == 0:
+                        print("loaded {} files, {}".format(c, datetime.now()))
+                print(f"failed {fail}, which is {(fail / len(self._files)) * 100}%")
+                train_data = np.stack(train_data)
+                print("Ended loading at: {}".format(datetime.now()))
+                with open(os.path.join(Configuration.CHECKPOINTS_PATH, hash), "wb") as f:
+                    pickle.dump((train_data, train_label), f)
 
             if os.path.exists(Configuration.NOISE_FILE):
                 noise_label = json.load(open(Configuration.NOISE_FILE, "r"))
