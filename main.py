@@ -13,6 +13,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from OriginalDivideMix.PreResNet import ResNet18
+from SemiLoss import SemiLoss
 from configuration import Configuration
 from data_parser.data_splitter import DataSplitter
 from data_parser.dia_to_metadata_parser import DiaToMetadata
