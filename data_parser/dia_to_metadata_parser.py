@@ -261,8 +261,8 @@ class DiaToMetadata(object):
     def split_by_expression_level(self, gene_name):
         row = self.get_gene_normalized_quant(gene_name)
         rnrs = self.get_rnrs()
-        high_percentile = np.percentile(row, 70)
-        low_percentile = np.percentile(row, 30)
+        high_percentile = np.percentile(row, 90)
+        low_percentile = np.percentile(row, 10)
 
         high_cols = row[row >= high_percentile].dropna(axis=1).columns
         low_cols = row[row <= low_percentile].dropna(axis=1).columns

@@ -1,7 +1,12 @@
+import json
 import os
 
 from PIL import Image
 from torch.utils.data import Dataset
+import numpy as np
+from torchvision import transforms
+
+from configuration import Configuration
 
 
 class TilesDataset(Dataset):
@@ -12,11 +17,63 @@ class TilesDataset(Dataset):
     The ids should be determined by a different function
     """
 
-    def __init__(self, tiles_directory, transform, ids, caller=None):
+    def __init__(self, tiles_directory, ids, mode, noise_ratio, pred=[], prob=[], caller=None):
         self.root_dir = tiles_directory
-        self.transform = transform
+        # self.transform = transform
+        self.transform_train = transforms.Compose([
+            # transforms.RandomCrop(32, padding=4),
+            # transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.], std=[255.])
+        ])
+
         self._files = self._load_files(ids)
+        self.mode = mode
+        self.noise_ratio = noise_ratio
         print("Loading: {} files".format(len(self._files)))
+        if self.mode != "test":
+            train_data = []
+            train_label = []
+            fail = 0
+            for path, label in self._files:
+                img_path = os.path.join(self.root_dir, path)
+                img = np.array(Image.open(img_path))
+                if img.shape != (512, 512, 3):
+                    fail += 1
+                else:
+                    # reshape to (32, 32, 3)
+                    img = img.reshape((32, 32, 3))
+                train_data.append(img)
+                train_label.append(label)
+            print(f"failed {fail}, which is {(fail / len(self._files)) * 100}%")
+            train_data = np.stack(train_data)
+
+            if os.path.exists(Configuration.NOISE_FILE):
+                noise_label = json.load(open(Configuration.NOISE_FILE, "r"))
+            else:
+                noise_label = []
+                train_size = len(train_data)
+                idx = list(range(train_size))
+                np.random.shuffle(idx)
+                num_noise = int(self.noise_ratio * train_size)
+                noise_idx = idx[:num_noise]
+                for i in range(train_size):
+                    if i in noise_idx:
+                        # TODO- currently didn't handle asymmetric noise
+                        random_label = np.random.randint(0, 2)
+                        noise_label.append(random_label)
+                    else:
+                        noise_label.append(train_label[i])
+
+                json.dump(noise_label, open(Configuration.NOISE_FILE, "w"))
+
+            if self.mode == 'all':
+                self.train_data = train_data
+                self.noise_label = noise_label
+            else:
+                raise NotImplementedError()
+        else:
+            raise NotImplementedError()
 
     def get_num_of_files(self):
         return len(self._files)
@@ -31,17 +88,16 @@ class TilesDataset(Dataset):
         return labeled_files
 
     def __len__(self):
-        return len(self._files)
+        if self.mode != 'test':
+            return len(self.train_data)
+        else:
+            raise NotImplementedError()
 
     def __getitem__(self, index):
-        img_path = os.path.join(self.root_dir, self._files[index][0])
-
-        # TODO- remove when running on actual env!!!
-        if os.path.basename(img_path) == ".DS_Store":
-            index += 1
-            img_path = os.path.join(self.root_dir, self._files[index][0])
-
-        img = Image.open(img_path)
-        img = self.transform(img)
-
-        return img, self._files[index][1]
+        if self.mode == 'all':
+            img, target = self.train_data[index], self.noise_label[index]
+            img = Image.fromarray(img)
+            img = self.transform_train(img)
+            return img, target, index
+        else:
+            raise NotImplementedError()

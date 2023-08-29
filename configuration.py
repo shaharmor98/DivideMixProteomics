@@ -4,7 +4,7 @@ import os
 class Configuration(object):
     SEED = 42
     GENES = ["MKI67"]
-    CHECKPOINTS_PATH = os.path.join(os.path.expanduser("~"), "paper/checkpoints", "{gene}")
+    CHECKPOINTS_PATH = os.path.join(os.path.expanduser("~"), "paper-divide-mix/checkpoints", "{gene}")
     PATCH_SIZE = 512
     ZOOM_LEVEL = 20
     TILES_DIRECTORY = os.path.join(os.path.expanduser("~"), "proteomics-tiles-shahar-mor",
@@ -18,4 +18,6 @@ class Configuration(object):
     PREDICTIONS_SUMMARY_FILE = os.path.join(CHECKPOINTS_PATH, "predictions.txt")
     OOD_FILE_PATH = os.path.join(CHECKPOINTS_PATH, "ood.txt")
     N_ROUNDS = 5
-    BATCH_SIZE = 32
+    BATCH_SIZE = 128
+    EPOCHS = 100
+    NOISE_FILE = os.path.join(CHECKPOINTS_PATH, "label_noise_file.txt")
