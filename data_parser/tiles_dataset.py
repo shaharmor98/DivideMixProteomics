@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 from PIL import Image
 from torch.utils.data import Dataset
@@ -31,22 +32,25 @@ class TilesDataset(Dataset):
         self.mode = mode
         self.noise_ratio = noise_ratio
         print("Loading: {} files".format(len(self._files)))
+        print("Started loading at: {}".format(datetime.now()))
         if self.mode != "test":
             train_data = []
             train_label = []
             fail = 0
             for path, label in self._files:
                 img_path = os.path.join(self.root_dir, path)
+                img_obj = Image.open(img_path)
                 img = np.array(Image.open(img_path))
                 if img.shape != (512, 512, 3):
                     fail += 1
                 else:
                     # reshape to (32, 32, 3)
-                    img = img.reshape((32, 32, 3))
+                    img = np.asarray(img_obj.resize((32, 32)))
                 train_data.append(img)
                 train_label.append(label)
             print(f"failed {fail}, which is {(fail / len(self._files)) * 100}%")
             train_data = np.stack(train_data)
+            print("Ended loading at: {}".format(datetime.now()))
 
             if os.path.exists(Configuration.NOISE_FILE):
                 noise_label = json.load(open(Configuration.NOISE_FILE, "r"))
