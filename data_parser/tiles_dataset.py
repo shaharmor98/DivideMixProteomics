@@ -53,8 +53,8 @@ class TilesDataset(Dataset):
                 else:
                     # reshape to (32, 32, 3)
                     img = np.asarray(img_obj.resize((32, 32)))
-                train_data.append(img)
-                train_label.append(label)
+                    train_data.append(img)
+                    train_label.append(label)
                 c += 1
                 if c % 1000 == 0:
                     print("loaded {} files, {}".format(c, datetime.now()))
