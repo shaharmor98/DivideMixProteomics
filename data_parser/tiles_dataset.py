@@ -20,7 +20,7 @@ class TilesDataset(Dataset):
     The ids should be determined by a different function
     """
 
-    def __init__(self, tiles_directory, ids, mode, noise_ratio, pred=[], prob=[], caller=None):
+    def __init__(self, tiles_directory, ids, mode, noise_ratio, pred=[], prob=[], caller=None, gene=None):
         self.root_dir = tiles_directory
         # self.transform = transform
         self.transform_train = transforms.Compose([
@@ -39,8 +39,8 @@ class TilesDataset(Dataset):
             train_data = []
             train_label = []
             hash = hashlib.sha256(json.dumps(ids, sort_keys=True).encode()).hexdigest()
-            if os.path.exists(os.path.join(Configuration.CHECKPOINTS_PATH, hash)):
-                with open(os.path.join(Configuration.CHECKPOINTS_PATH, hash), "rb") as f:
+            if os.path.exists(os.path.join(Configuration.CHECKPOINTS_PATH.format(gene=gene), hash)):
+                with open(os.path.join(Configuration.CHECKPOINTS_PATH.format(gene=gene), hash), "rb") as f:
                     train_data, train_label = pickle.load(f)
             else:
                 fail = 0
@@ -62,11 +62,11 @@ class TilesDataset(Dataset):
                 print(f"failed {fail}, which is {(fail / len(self._files)) * 100}%")
                 train_data = np.stack(train_data)
                 print("Ended loading at: {}".format(datetime.now()))
-                with open(os.path.join(Configuration.CHECKPOINTS_PATH, hash), "wb") as f:
+                with open(os.path.join(Configuration.CHECKPOINTS_PATH.format(gene=gene), hash), "wb") as f:
                     pickle.dump((train_data, train_label), f)
 
-            if os.path.exists(Configuration.NOISE_FILE):
-                noise_label = json.load(open(Configuration.NOISE_FILE, "r"))
+            if os.path.exists(Configuration.NOISE_FILE.format(gene=gene)):
+                noise_label = json.load(open(Configuration.NOISE_FILE.format(gene=gene), "r"))
             else:
                 noise_label = []
                 train_size = len(train_data)
@@ -82,7 +82,7 @@ class TilesDataset(Dataset):
                     else:
                         noise_label.append(train_label[i])
 
-                json.dump(noise_label, open(Configuration.NOISE_FILE, "w"))
+                json.dump(noise_label, open(Configuration.NOISE_FILE.format(gene=gene), "w"))
 
             if self.mode == 'all':
                 self.train_data = train_data
