@@ -129,7 +129,8 @@ def start_train(args):
 
         if epoch < warm_up_iterations:
             # Shahar- you use train instances, but what about validation? figure out how the authors used it
-            tiles_dataset = TilesDataset(tiles_directory_path, ids=train_instances, mode="all", noise_ratio=0.2)
+            tiles_dataset = TilesDataset(tiles_directory_path, ids=train_instances, mode="all", noise_ratio=0.2,
+                                         gene=gene)
             warmup_loader = DataLoader(tiles_dataset, batch_size=Configuration.BATCH_SIZE * 2,
                                        shuffle=True, num_workers=num_workers)
 

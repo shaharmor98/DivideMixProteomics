@@ -42,9 +42,9 @@ class TilesDataset(Dataset):
             if os.path.exists(os.path.join(Configuration.CHECKPOINTS_PATH.format(gene=gene), hash)):
                 with open(os.path.join(Configuration.CHECKPOINTS_PATH.format(gene=gene), hash), "rb") as f:
                     train_data, train_label = pickle.load(f)
+                    print("Founded pickled data")
             else:
                 fail = 0
-                c = 0
                 for path, label in self._files:
                     img_path = os.path.join(self.root_dir, path)
                     img_obj = Image.open(img_path)
@@ -56,9 +56,6 @@ class TilesDataset(Dataset):
                         img = np.asarray(img_obj.resize((32, 32)))
                         train_data.append(img)
                         train_label.append(label)
-                    c += 1
-                    if c % 1000 == 0:
-                        print("loaded {} files, {}".format(c, datetime.now()))
                 print(f"failed {fail}, which is {(fail / len(self._files)) * 100}%")
                 train_data = np.stack(train_data)
                 print("Ended loading at: {}".format(datetime.now()))
